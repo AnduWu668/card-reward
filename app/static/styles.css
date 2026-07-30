@@ -241,6 +241,22 @@ h1 {
 .close-button { position: absolute; top: 12px; right: 14px; border: 0; color: #aaaed0; font-size: 25px; background: transparent; }
 .dialog-actions { display: flex; gap: 10px; }
 .primary-small { padding: 13px; font-size: 14px; }
+.claim-user-field {
+  display: grid;
+  gap: 7px;
+  margin: 18px 0 12px;
+  color: #c3c6e3;
+  text-align: left;
+  font-size: 13px;
+}
+.claim-user-field select {
+  width: 100%;
+  border: 1px solid #505a83;
+  border-radius: 10px;
+  padding: 11px;
+  color: #fff;
+  background: #080b1e;
+}
 .secondary-button {
   width: 100%;
   border: 1px solid #8998c8;

@@ -28,7 +28,7 @@ docker compose up --build
 1. 在页面右上角选择任意种子用户，点击底部抽卡。
 2. 点击主卡片翻面查看该卡的题目与解读，点击下方五张小卡切换。
 3. 切换为普通大师或传承大师，抽卡结果弹层会显示“赠送此卡”。
-4. 生成并复制赠卡链接；在同一页面切换成更低等级用户，再打开链接领取。
+4. 生成并复制赠卡链接；打开链接，在领取弹层选择符合等级规则的领取身份。
 5. 尝试本人领取、同级领取、重复领取或超过收卡上限，观察稳定的业务错误。
 
 > `X-Demo-User-Id` 仅服务本地演示，并非生产鉴权方案。
@@ -43,11 +43,21 @@ docker compose up -d db
 alembic upgrade head
 python -m app.seed
 uvicorn app.main:app --reload
-pytest
+```
+
+另开一个终端运行检查和测试：
+
+```bash
+source .venv/bin/activate
+ruff check .
+pytest -v
+pytest --cov=app --cov-report=term-missing
 ```
 
 测试会自动创建并使用独立的 `card_reward_test` 数据库；测试代码带有防误删保护，
 不会 drop/recreate 正在供 H5 使用的开发数据库。
+测试覆盖抽卡幂等与周期重置、身份规则、普通/麒麟收发额度、失败回滚、链接过期，
+以及题面要求的两类并发竞争。
 
 详细的接口契约、数据模型、锁策略、额度假设和兑换设计见 [docs/API.md](docs/API.md)。
 

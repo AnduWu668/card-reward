@@ -6,6 +6,7 @@ from app.db import get_db
 from app.errors import AppError
 from app.models import User
 from app.schemas import (
+    ActivityStatusOut,
     CardOut,
     ClaimOut,
     DrawOut,
@@ -15,6 +16,7 @@ from app.schemas import (
     UserOut,
 )
 from app.services import (
+    activity_status,
     cache_app_error,
     claim_gift,
     create_gift,
@@ -50,6 +52,11 @@ def users(db: Session = Depends(get_db)):
 @router.get("/cards", response_model=list[CardOut])
 def cards(user: User = Depends(demo_user), db: Session = Depends(get_db)):
     return list_cards(db, user)
+
+
+@router.get("/activity-status", response_model=ActivityStatusOut)
+def status_get(user: User = Depends(demo_user), db: Session = Depends(get_db)):
+    return activity_status(db, user)
 
 
 @router.post("/draws", response_model=DrawOut)

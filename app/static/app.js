@@ -1,6 +1,7 @@
 const state = { users: [], cards: [], userId: localStorage.getItem("demoUserId"), selected: null };
 const $ = (selector) => document.querySelector(selector);
 const symbols = { QINGLONG: "青", ZHUQUE: "朱", BAIHU: "白", XUANWU: "玄", QILIN: "麒" };
+const roleRanks = { USER: 0, MASTER: 1, INHERITOR: 2 };
 
 function key() {
   return crypto.randomUUID();
@@ -64,10 +65,14 @@ function renderCards() {
 }
 
 async function loadCards() {
-  state.cards = await api("/api/v1/cards", { headers: headers() });
+  const [cards, status] = await Promise.all([
+    api("/api/v1/cards", { headers: headers() }),
+    api("/api/v1/activity-status", { headers: headers() })
+  ]);
+  state.cards = cards;
   renderCards();
-  $("#drawButton").disabled = false;
-  $("#drawButton").textContent = "抽卡（点击开启今日灵运）";
+  $("#drawButton").disabled = status.draws_remaining_today === 0;
+  $("#drawButton").textContent = `抽卡（今日还剩 ${status.draws_remaining_today} 次）`;
 }
 
 async function loadUsers() {
@@ -129,10 +134,20 @@ async function createGift() {
 async function loadGift(token) {
   try {
     const gift = await api(`/api/v1/gift-links/${encodeURIComponent(token)}`);
+    const eligibleUsers = state.users.filter((user) =>
+      user.id !== gift.sender_id && roleRanks[user.role] < roleRanks[gift.sender_role]
+    );
     $("#claimSigil").textContent = symbols[gift.card.code];
     $("#claimTitle").textContent = `${gift.sender_nickname} 赠你${gift.card.name}`;
     $("#claimText").textContent = gift.card.question;
     $("#claimButton").dataset.token = token;
+    $("#claimUserSelect").innerHTML = eligibleUsers.map((user) =>
+      `<option value="${user.id}">${user.nickname}</option>`
+    ).join("");
+    const currentUserIsEligible = eligibleUsers.some((user) => user.id === state.userId);
+    if (currentUserIsEligible) $("#claimUserSelect").value = state.userId;
+    $("#claimButton").disabled = eligibleUsers.length === 0;
+    if (!eligibleUsers.length) $("#claimText").textContent = "当前没有符合赠送规则的演示用户。";
     $("#claimDialog").showModal();
   } catch (error) {
     toast(error.message);
@@ -141,6 +156,9 @@ async function loadGift(token) {
 
 async function claim() {
   try {
+    state.userId = $("#claimUserSelect").value;
+    $("#userSelect").value = state.userId;
+    localStorage.setItem("demoUserId", state.userId);
     const result = await api(`/api/v1/gift-links/${encodeURIComponent($("#claimButton").dataset.token)}/claims`, {
       method: "POST",
       headers: headers(true)
@@ -168,6 +186,9 @@ $("#giftButton").addEventListener("click", createGift);
 $("#copyButton").addEventListener("click", async () => {
   await navigator.clipboard.writeText($("#shareUrl").value);
   toast("赠卡链接已复制");
+});
+$("#openGiftButton").addEventListener("click", () => {
+  window.open($("#shareUrl").value, "_blank", "noopener");
 });
 $("#claimButton").addEventListener("click", claim);
 document.querySelectorAll("[data-close]").forEach((node) =>

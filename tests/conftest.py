@@ -1,6 +1,8 @@
 import os
 
 import psycopg
+import pytest
+from fastapi.testclient import TestClient
 
 # Tests must never drop/recreate the development database used by a running H5.
 TEST_DATABASE_NAME = os.getenv("TEST_DATABASE_NAME", "card_reward_test")
@@ -22,3 +24,19 @@ with psycopg.connect(
 
 os.environ["DATABASE_URL"] = TEST_DATABASE_URL
 
+from app.db import Base, engine
+from app.main import app
+from app.seed import seed
+
+
+@pytest.fixture(autouse=True)
+def clean_database():
+    assert engine.url.database.endswith("_test")
+    Base.metadata.drop_all(engine)
+    Base.metadata.create_all(engine)
+    seed()
+
+
+@pytest.fixture
+def client():
+    return TestClient(app)

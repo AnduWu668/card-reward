@@ -1,28 +1,12 @@
 from concurrent.futures import ThreadPoolExecutor
 from uuid import uuid4
 
-import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
-from app.db import Base, SessionLocal, engine
-from app.main import app
+from app.db import SessionLocal
 from app.models import CardBalance, CardType, QuotaKind, QuotaUsage, Rarity, Role, User
-from app.seed import seed
 from app.services import local_period_start
-
-
-@pytest.fixture(autouse=True)
-def clean_database():
-    assert engine.url.database.endswith("_test")
-    Base.metadata.drop_all(engine)
-    Base.metadata.create_all(engine)
-    seed()
-
-
-@pytest.fixture
-def client():
-    return TestClient(app)
 
 
 def users_by_role():
@@ -90,6 +74,23 @@ def test_draw_is_idempotent_and_daily_limit_is_hard(client: TestClient):
     assert exhausted.json()["error"]["code"] == "DRAW_LIMIT_REACHED"
 
 
+def test_concurrent_draw_retries_with_same_key_only_draw_once(client: TestClient):
+    user_id = users_by_role()[Role.USER][0]
+    headers = {"X-Demo-User-Id": user_id, "Idempotency-Key": "concurrent-draw-key"}
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        responses = list(pool.map(lambda _: client.post("/api/v1/draws", headers=headers), range(2)))
+
+    assert [response.status_code for response in responses] == [200, 200]
+    assert responses[0].json() == responses[1].json()
+    with SessionLocal() as session:
+        usage = session.get(
+            QuotaUsage,
+            (user_id, QuotaKind.DRAW, local_period_start(QuotaKind.DRAW)),
+        )
+        assert usage.used == 1
+
+
 def test_concurrent_claims_on_one_link_only_issue_one_card(client: TestClient):
     role_users = users_by_role()
     token = create_gift(client, role_users[Role.MASTER][0])
@@ -102,6 +103,18 @@ def test_concurrent_claims_on_one_link_only_issue_one_card(client: TestClient):
     assert next(response for response in responses if response.status_code == 409).json()["error"][
         "code"
     ] == "GIFT_ALREADY_CLAIMED"
+
+
+def test_gift_preview_identifies_sender_for_recipient_selection(client: TestClient):
+    role_users = users_by_role()
+    sender_id = role_users[Role.MASTER][0]
+    token = create_gift(client, sender_id)
+
+    response = client.get(f"/api/v1/gift-links/{token}")
+
+    assert response.status_code == 200
+    assert response.json()["sender_id"] == sender_id
+    assert response.json()["sender_role"] == Role.MASTER.value
 
 
 def test_concurrent_links_compete_for_senders_last_quota(client: TestClient):

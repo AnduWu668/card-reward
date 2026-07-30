@@ -23,6 +23,10 @@ class CardOut(BaseModel):
     display_order: int
 
 
+class ActivityStatusOut(BaseModel):
+    draws_remaining_today: int
+
+
 class DrawOut(BaseModel):
     draw_id: uuid.UUID
     card: CardOut
@@ -42,7 +46,9 @@ class GiftOut(BaseModel):
 
 
 class GiftPreviewOut(BaseModel):
+    sender_id: uuid.UUID
     sender_nickname: str
+    sender_role: Role
     card: CardOut
     status: GiftStatus
     expires_at: datetime
@@ -65,4 +71,3 @@ class ErrorOut(BaseModel):
 
 
 IdempotencyKey = Field(min_length=8, max_length=100)
-

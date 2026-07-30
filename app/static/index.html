@@ -65,6 +65,7 @@
     <div id="shareBox" class="share-box" hidden>
       <input id="shareUrl" readonly aria-label="赠卡链接">
       <button id="copyButton">复制</button>
+      <button id="openGiftButton">打开</button>
     </div>
   </dialog>
 
@@ -73,10 +74,14 @@
     <div id="claimSigil" class="result-sigil">灵</div>
     <h2 id="claimTitle">好友赠你一张卡</h2>
     <p id="claimText"></p>
+    <label class="claim-user-field" for="claimUserSelect">
+      <span>领取身份</span>
+      <select id="claimUserSelect" aria-label="选择领取身份"></select>
+    </label>
     <button id="claimButton" class="primary-small">立即领取</button>
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="/static/app.js?v=3" defer></script>
+  <script src="/static/app.js?v=5" defer></script>
 </body>
 </html>

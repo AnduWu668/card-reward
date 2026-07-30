@@ -243,6 +243,17 @@ def list_cards(session: Session, user: User) -> list[dict]:
     return [card_dict(card, quantity) for card, quantity in rows]
 
 
+def activity_status(session: Session, user: User) -> dict:
+    used = session.scalar(
+        select(QuotaUsage.used).where(
+            QuotaUsage.user_id == user.id,
+            QuotaUsage.kind == QuotaKind.DRAW,
+            QuotaUsage.period_start == local_period_start(QuotaKind.DRAW),
+        )
+    )
+    return {"draws_remaining_today": max(0, quota_limit(user, QuotaKind.DRAW) - (used or 0))}
+
+
 def draw_card(session: Session, user: User, key: str) -> dict:
     operation = "draw"
     digest = request_digest({})
@@ -335,7 +346,9 @@ def gift_preview(session: Session, raw_token: str) -> dict:
     if gift.expires_at <= now_utc() and gift.status == GiftStatus.AVAILABLE:
         raise AppError(410, "GIFT_LINK_EXPIRED", "赠卡链接已过期")
     return {
+        "sender_id": str(gift.sender.id),
         "sender_nickname": gift.sender.nickname,
+        "sender_role": gift.sender.role.value,
         "card": card_dict(gift.card_type, 0),
         "status": gift.status.value,
         "expires_at": gift.expires_at.isoformat(),

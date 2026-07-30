@@ -25,7 +25,18 @@ services:
         condition: service_healthy
     ports:
       - "8000:8000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')",
+        ]
+      interval: 5s
+      timeout: 2s
+      retries: 10
+      start_period: 5s
 
 volumes:
   card_reward_pg:
-

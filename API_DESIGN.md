@@ -69,6 +69,7 @@ Idempotency-Key: 8c356834-9541-45f2-a1a0-2ae329d8083e
 |---|---|---|---:|---:|
 | 查询演示用户 | GET | `/demo/users` | 否 | 否 |
 | 查看卡包 | GET | `/cards` | 是 | 否 |
+| 查看今日剩余抽卡次数 | GET | `/activity-status` | 是 | 否 |
 | 抽卡 | POST | `/draws` | 是 | 是 |
 | 创建赠卡链接 | POST | `/gift-links` | 是 | 是 |
 | 查看赠卡链接 | GET | `/gift-links/{token}` | 否 | 否 |
@@ -291,7 +292,9 @@ GET /api/v1/gift-links/{token}
 
 ```json
 {
+  "sender_id": "3853a777-630a-4fd4-bd79-d32fa0fe69af",
   "sender_nickname": "青禾（普通大师）",
+  "sender_role": "MASTER",
   "card": {
     "id": "971b114b-cc95-454d-aad9-ef38a45bd06a",
     "code": "BAIHU",
@@ -309,10 +312,11 @@ GET /api/v1/gift-links/{token}
 
 接口不会暴露：
 
-- 赠送者 ID
 - 赠送者剩余额度
 - 已领取用户信息
 - 数据库中的链接 ID
+
+赠送者 ID 和角色用于本地 H5 过滤赠送者本人以及不符合等级规则的演示身份。
 
 ---
 
