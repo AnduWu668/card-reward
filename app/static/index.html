@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07091e">
+  <title>五灵集卡</title>
+  <link rel="stylesheet" href="/static/styles.css?v=2">
+</head>
+<body>
+  <main class="app-shell">
+    <header>
+      <div class="demo-bar">
+        <label for="userSelect">演示身份</label>
+        <select id="userSelect" aria-label="选择演示用户"></select>
+      </div>
+      <p class="eyebrow">✦ 灵兽有信 · 好运将至 ✦</p>
+      <h1>五灵集卡</h1>
+      <p class="activity-meta"><span>每日 3 次抽卡</span><i></i><span>大师可赠卡</span></p>
+    </header>
+
+    <section class="stage" aria-label="当前卡片">
+      <div id="card" class="spirit-card" tabindex="0" role="button" aria-label="点击查看题目和解读">
+        <div class="card-face card-front">
+          <span class="card-rarity" id="cardRarity">灵兽卡</span>
+          <div class="sigil" id="cardSigil">灵</div>
+          <strong id="cardName">等待抽取</strong>
+          <small>点击翻面查看启示</small>
+        </div>
+        <div class="card-face card-back">
+          <span class="card-rarity">今日启示</span>
+          <h2 id="cardQuestion">选择一张卡，看看它想告诉你什么。</h2>
+          <p id="cardInterpretation">五灵正在等待与你相遇。</p>
+          <small>点击返回卡面</small>
+        </div>
+      </div>
+      <div class="spark spark-one">✦</div>
+      <div class="spark spark-two">✧</div>
+    </section>
+
+    <section class="collection">
+      <div class="progress-title">
+        <span>五灵进度</span>
+        <strong id="progress">0<em>/5</em></strong>
+      </div>
+      <div id="cardList" class="card-list" aria-label="我的卡包"></div>
+    </section>
+
+    <section class="actions">
+      <button id="drawButton" class="primary-button">抽卡（今日还剩 3 次）</button>
+      <p id="hint">每次抽取彼此独立，麒麟出现概率为 1%</p>
+    </section>
+  </main>
+
+  <dialog id="resultDialog" class="result-dialog">
+    <button class="close-button" data-close aria-label="关闭">×</button>
+    <p class="eyebrow">✦ 灵光乍现 ✦</p>
+    <div id="resultSigil" class="result-sigil">灵</div>
+    <h2 id="resultTitle">抽到青龙</h2>
+    <p id="resultText"></p>
+    <div class="dialog-actions">
+      <button id="giftButton" class="secondary-button">赠送此卡</button>
+      <button class="primary-small" data-close>收下启示</button>
+    </div>
+    <div id="shareBox" class="share-box" hidden>
+      <input id="shareUrl" readonly aria-label="赠卡链接">
+      <button id="copyButton">复制</button>
+    </div>
+  </dialog>
+
+  <dialog id="claimDialog" class="result-dialog">
+    <p class="eyebrow">✦ 一份灵兽赠礼 ✦</p>
+    <div id="claimSigil" class="result-sigil">灵</div>
+    <h2 id="claimTitle">好友赠你一张卡</h2>
+    <p id="claimText"></p>
+    <button id="claimButton" class="primary-small">立即领取</button>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="/static/app.js?v=3" defer></script>
+</body>
+</html>
